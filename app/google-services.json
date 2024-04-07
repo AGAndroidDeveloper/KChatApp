@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1016905926973",
+    "project_id": "ankit-chat-app-9cf7c",
+    "storage_bucket": "ankit-chat-app-9cf7c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1016905926973:android:ce0a995a1d7da395221d54",
+        "android_client_info": {
+          "package_name": "com.ankitgupta.kchatapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1016905926973-087vrq4ialp5u17ve1b647f78cfruc48.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ankitgupta.kchatapp",
+            "certificate_hash": "a3b55708e291baf66c349b0334b8624f79350f45"
+          }
+        },
+        {
+          "client_id": "1016905926973-oo7lpaatjeftdj1uu112j9lmdqbht630.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlKCdinvsZmzE-sNCg5T9YqjHMaeZ1jJA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1016905926973-oo7lpaatjeftdj1uu112j9lmdqbht630.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
