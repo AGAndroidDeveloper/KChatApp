@@ -16,7 +16,7 @@ https://github.com/AGAndroidDeveloper
 
 ## 🚀 About Me
 I'm a full stack android app developer ,
-who is passionate about android developement and loves creta
+who is passionate about android developement 
 
 ## About Me
 
