@@ -59,6 +59,8 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:21.0.0")
 // gson converter
     implementation("com.google.code.gson:gson:2.10.1")
+    // glide
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 
 
     implementation(libs.androidx.core.ktx)

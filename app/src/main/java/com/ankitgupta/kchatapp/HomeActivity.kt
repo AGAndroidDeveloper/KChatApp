@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.PopupMenu
 import androidx.databinding.DataBindingUtil
 import com.ankitgupta.kchatapp.application.HiltApplication
 import com.ankitgupta.kchatapp.databinding.ActivityHomeBinding
@@ -22,15 +23,29 @@ class HomeActivity : AppCompatActivity() {
 //            insets
 //        }
 
+        binding.backNavigation.setOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
         binding.menu.setOnClickListener {
             showPopUpMenu(it)
         }
     }
 
     private fun showPopUpMenu(view: View) {
-        myApplication.showPopupMenu(this, view) {
-            val intent = Intent(this, UserProfileActivity::class.java)
-            startActivity(intent)
+        val popupMenu = PopupMenu(this, view)
+        // Inflating popup menu from popup_menu.xml file
+        popupMenu.menuInflater.inflate(R.menu.menu, popupMenu.menu)
+        popupMenu.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.profile_ -> {
+                    val intent = Intent(this, UserProfileActivity::class.java)
+                    startActivity(intent)
+                }
+            }
+            true
         }
+        // Showing the popup menu
+        popupMenu.show()
+
     }
 }

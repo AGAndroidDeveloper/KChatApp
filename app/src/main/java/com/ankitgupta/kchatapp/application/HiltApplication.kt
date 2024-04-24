@@ -17,6 +17,7 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -481,8 +482,14 @@ class HiltApplication : Application() {
             customView,
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT,
-            true
+            true,
         )
+
+        popupWindow.showAsDropDown(view, 52, 3, Gravity.START)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            popupWindow.setIsClippedToScreen(true)
+        }
+
         val profile: TextView = customView.findViewById(R.id.profile__)
 
         profile.setOnClickListener {

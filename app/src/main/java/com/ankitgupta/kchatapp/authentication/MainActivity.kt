@@ -1,13 +1,18 @@
-package com.ankitgupta.kchatapp
+package com.ankitgupta.kchatapp.authentication
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import com.ankitgupta.kchatapp.HomeActivity
+import com.ankitgupta.kchatapp.ProfileData
+import com.ankitgupta.kchatapp.R
 import com.ankitgupta.kchatapp.application.HiltApplication
 import com.ankitgupta.kchatapp.databinding.ActivityMainBinding
 import com.ankitgupta.kchatapp.sharedpref.ProfileDataManager
@@ -26,13 +31,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var myApplication: HiltApplication
     private lateinit var profileDataManager: ProfileDataManager
-
-    //    val rawNonce = UUID.randomUUID().toString()
-//    val bytes = rawNonce.toByteArray()
-//    val s = MessageDigest.getInstance("SHA-256")
-//    val md = s.digest(bytes)
-//    private val hasedNonce = md.fold("") { str, it -> str + "%02x".format(it) }
-    private val REQ_ONE_TAP = 2  // Can be any integer unique to the Activity
+    private var launcher: ActivityResultLauncher<Intent>? = null
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
 
@@ -58,9 +57,31 @@ class MainActivity : AppCompatActivity() {
         profileDataManager = ProfileDataManager(this)
         googleSignInClient = GoogleSignIn.getClient(this@MainActivity, googleSignInOptions)
 
+        launcher =
+            registerForActivityResult(
+                ActivityResultContracts.StartActivityForResult()
+            ) {
+                if (it.resultCode == Activity.RESULT_OK) {
+                    val task = GoogleSignIn.getSignedInAccountFromIntent(it.data)
+                    try {
+                        myApplication.spinnerStart(this@MainActivity)
+                        // Google Sign In was successful, authenticate with Firebase
+                        val account = task.getResult(ApiException::class.java)!!
+                        Log.d(TAG, "firebaseAuthWithGoogle:" + account.id)
+                        firebaseAuthWithGoogle(account.idToken!!)
+                    } catch (e: ApiException) {
+                        myApplication.spinnerStop()
+                        // Google Sign In failed, update UI appropriately
+                        Log.w(TAG, "Google sign in failed", e)
+                    }
+                }
+            }
+
+
         binding.authenticate.setOnClickListener {
             val intent = googleSignInClient.signInIntent
-            startActivityForResult(intent, REQ_ONE_TAP)
+            launcher?.launch(intent)
+            // startActivityForResult(intent, REQ_ONE_TAP)
             //   authenticateWithGoogle()
         }
 
@@ -86,23 +107,23 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
-        if (requestCode == REQ_ONE_TAP) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-            try {
-                // Google Sign In was successful, authenticate with Firebase
-                val account = task.getResult(ApiException::class.java)!!
-                Log.d(TAG, "firebaseAuthWithGoogle:" + account.id)
-                firebaseAuthWithGoogle(account.idToken!!)
-            } catch (e: ApiException) {
-                // Google Sign In failed, update UI appropriately
-                Log.w(TAG, "Google sign in failed", e)
-            }
-        }
-    }
+//    @Deprecated("Deprecated in Java")
+//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+//        super.onActivityResult(requestCode, resultCode, data)
+//        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+//        if (requestCode == REQ_ONE_TAP) {
+//            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+//            try {
+//                // Google Sign In was successful, authenticate with Firebase
+//                val account = task.getResult(ApiException::class.java)!!
+//                Log.d(TAG, "firebaseAuthWithGoogle:" + account.id)
+//                firebaseAuthWithGoogle(account.idToken!!)
+//            } catch (e: ApiException) {
+//                // Google Sign In failed, update UI appropriately
+//                Log.w(TAG, "Google sign in failed", e)
+//            }
+//        }
+//    }
 
     private fun firebaseAuthWithGoogle(idToken: String) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
@@ -116,18 +137,22 @@ class MainActivity : AppCompatActivity() {
                         ProfileData(
                             email = it.email,
                             uid = it.uid,
-                            imageURL = it.photoUrl,
-                            userName = it.displayName
+                            imageURL = it.photoUrl.toString(),
+                            userName = it.displayName,
+                            phoneNumber = it.phoneNumber
                         )
                     }
 
+                    Log.e("user", "$userProfile")
                     if (userProfile != null) {
                         profileDataManager.saveProfileData(userProfile, "PROFILE_DATA")
                     }
 
+                    myApplication.spinnerStop()
                     Log.e("user", "$userProfile")
                     updateUI(user)
                 } else {
+                    myApplication.spinnerStop()
                     // If sign in fails, display a message to the user.
                     Log.w(TAG, "signInWithCredential:failure", task.exception)
                     updateUI(null)
@@ -141,10 +166,10 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, HomeActivity::class.java)
             startActivity(intent)
             finish()
-    //        Toast.makeText(this, user.displayName, Toast.LENGTH_SHORT).show()
+            //        Toast.makeText(this, user.displayName, Toast.LENGTH_SHORT).show()
         } else {
             binding.authenticate.visibility = View.VISIBLE
-            Toast.makeText(this, "nu;ll", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "no current user found", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -154,6 +179,4 @@ class MainActivity : AppCompatActivity() {
         val currentUser = auth.currentUser
         updateUI(currentUser)
     }
-
-
 }
