@@ -6,8 +6,6 @@ import com.ankitgupta.kchatapp.ProfileData
 import com.ankitgupta.kchatapp.application.HiltApplication.Companion.SHARED_PREF_NAME
 import com.google.gson.Gson
 
-// Define a class to handle SharedPreferences operations
-
 class ProfileDataManager(private val context: Context) {
     private val sharedPreferences: SharedPreferences by lazy {
         context.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)

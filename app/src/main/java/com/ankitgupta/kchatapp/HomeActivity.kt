@@ -3,25 +3,26 @@ package com.ankitgupta.kchatapp
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import androidx.databinding.DataBindingUtil
 import com.ankitgupta.kchatapp.application.HiltApplication
 import com.ankitgupta.kchatapp.databinding.ActivityHomeBinding
+import com.ankitgupta.kchatapp.viewmodel.HomeViewModel
+import dagger.hilt.android.HiltAndroidApp
 
+@HiltAndroidApp
 class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
     private lateinit var myApplication: HiltApplication
+    private val viewmodel: HomeViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //       enableEdgeToEdge()
         binding = DataBindingUtil.setContentView(this, R.layout.activity_home)
         myApplication = HiltApplication.instance
-//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-//            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-//            insets
-//        }
 
         binding.backNavigation.setOnClickListener {
             onBackPressedDispatcher.onBackPressed()
@@ -48,4 +49,6 @@ class HomeActivity : AppCompatActivity() {
         popupMenu.show()
 
     }
+
+
 }

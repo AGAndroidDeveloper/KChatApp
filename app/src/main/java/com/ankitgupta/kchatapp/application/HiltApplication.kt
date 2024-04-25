@@ -29,9 +29,11 @@ import com.ankitgupta.kchatapp.ProfileData
 import com.ankitgupta.kchatapp.R
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.HiltAndroidApp
 import java.util.Locale
 
 
+@HiltAndroidApp
 class HiltApplication : Application() {
     override fun onCreate() {
         super.onCreate()

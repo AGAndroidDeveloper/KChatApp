@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     id("com.google.gms.google-services")
+    id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -62,6 +64,24 @@ dependencies {
     // glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
+
+    // dagger hilt
+    implementation("com.google.dagger:hilt-android:2.48")
+//    implementation("com.google.android.gms:play-services-location:21.1.0")
+    ksp("com.google.dagger:hilt-android-compiler:2.48")
+    ksp("androidx.hilt:hilt-compiler:1.1.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+
+    // glide
+    implementation ("com.github.bumptech.glide:glide:4.16.0")
+
+
+    // viewmodel
+   // implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
+//    ksp("androidx.lifecycle:lifecycle-compiler:2.7.0")
+   // implementation ("androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03")
+
+   // implementation("androidx.annotation:annotation:1.7.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

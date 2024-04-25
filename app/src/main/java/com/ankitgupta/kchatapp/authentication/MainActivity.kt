@@ -8,14 +8,19 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.ankitgupta.kchatapp.HomeActivity
 import com.ankitgupta.kchatapp.ProfileData
 import com.ankitgupta.kchatapp.R
 import com.ankitgupta.kchatapp.application.HiltApplication
 import com.ankitgupta.kchatapp.databinding.ActivityMainBinding
 import com.ankitgupta.kchatapp.sharedpref.ProfileDataManager
+import com.ankitgupta.kchatapp.viewmodel.AuthenticationViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -24,16 +29,25 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var myApplication: HiltApplication
-    private lateinit var profileDataManager: ProfileDataManager
     private var launcher: ActivityResultLauncher<Intent>? = null
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
+    private val viewmodel: AuthenticationViewModel by viewModels()
+    private val realDb: FirebaseDatabase =
+        FirebaseDatabase.getInstance("https://ankit-chat-app-9cf7c-default-rtdb.asia-southeast1.firebasedatabase.app")
+
 
     private val googleSignInOptions =
         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -53,8 +67,7 @@ class MainActivity : AppCompatActivity() {
         //   enableEdgeToEdge()
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         myApplication = HiltApplication.instance
-        auth = Firebase.auth
-        profileDataManager = ProfileDataManager(this)
+        auth = FirebaseAuth.getInstance()
         googleSignInClient = GoogleSignIn.getClient(this@MainActivity, googleSignInOptions)
 
         launcher =
@@ -76,6 +89,20 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
+
+        lifecycleScope.launch {
+            viewmodel.userState.flowWithLifecycle(
+                lifecycle = lifecycle,
+                minActiveState = Lifecycle.State.STARTED
+            ).collect { islogin ->
+                if (islogin) {
+                    binding.authenticate.visibility = View.GONE
+                } else {
+                    binding.authenticate.visibility = View.VISIBLE
+                }
+            }
+        }
+
 
 
         binding.authenticate.setOnClickListener {
@@ -145,8 +172,10 @@ class MainActivity : AppCompatActivity() {
 
                     Log.e("user", "$userProfile")
                     if (userProfile != null) {
-                        profileDataManager.saveProfileData(userProfile, "PROFILE_DATA")
+                        viewmodel.saveUserProfileDataInLocalStorage(userProfile)
                     }
+                    // save user in db
+                    saveUserInDB(userProfile)
 
                     myApplication.spinnerStop()
                     Log.e("user", "$userProfile")
@@ -160,22 +189,37 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
+    private fun saveUserInDB(userProfile: ProfileData?) {
+        val userMapData = userProfile?.profileDataToMap()
+        val reference = realDb.getReference("users")
+        if (userProfile != null) {
+            userProfile.uid?.let { it ->
+                reference.child(it).setValue(userMapData)
+                    .addOnSuccessListener {
+                        Log.e(TAG, "data added in db successfully")
+                    }
+                    .addOnFailureListener {
+                        Log.e(TAG, "exception :${it.message}")
+                    }
+            }
+        }
+    }
+
     private fun updateUI(user: FirebaseUser?) {
         if (user != null) {
-            binding.authenticate.visibility = View.GONE
+            Toast.makeText(this, "log in successfully", Toast.LENGTH_SHORT).show()
+            viewmodel.updateUserState(true)
             val intent = Intent(this, HomeActivity::class.java)
             startActivity(intent)
             finish()
-            //        Toast.makeText(this, user.displayName, Toast.LENGTH_SHORT).show()
         } else {
-            binding.authenticate.visibility = View.VISIBLE
+            viewmodel.updateUserState(false)
             Toast.makeText(this, "no current user found", Toast.LENGTH_SHORT).show()
         }
     }
 
     override fun onStart() {
         super.onStart()
-        // Check if user is signed in (non-null) and update UI accordingly.
         val currentUser = auth.currentUser
         updateUI(currentUser)
     }
