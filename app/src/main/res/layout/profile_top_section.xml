@@ -9,7 +9,7 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="300dp"
+        android:layout_height="wrap_content"
         android:layout_margin="20dp"
         android:background="@drawable/profile_frame_background"
         android:padding="20dp"
@@ -21,14 +21,15 @@
             android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
             android:letterSpacing=".04"
             android:text="Profile"
             android:textAppearance="@style/TextAppearance.AppCompat.Title"
             android:textColor="@color/md_theme_dark_onTertiaryContainer"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="@+id/backbtn"
             app:layout_constraintStart_toEndOf="@+id/backbtn"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="@+id/backbtn" />
 
         <ImageView
             android:id="@+id/backbtn"
@@ -37,6 +38,7 @@
             android:src="@drawable/icons8_back_50"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+
              />
 
 
@@ -49,6 +51,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginVertical="20dp"
             app:layout_constraintTop_toBottomOf="@+id/backbtn">
 
             <FrameLayout
@@ -68,22 +71,26 @@
 
                     <ImageView
                         android:id="@+id/profile_image"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
+                        android:layout_width="150dp"
+                        android:layout_height="150dp"
                         android:layout_gravity="center"
                         android:scaleType="fitXY"
-                        android:src="@drawable/_114100" />
+                        android:src="@drawable/pngtree_gray_avatar_placeholder_png_image_3416697" />
                 </com.google.android.material.card.MaterialCardView>
 
 
                 <ImageView
-                    android:layout_width="29dp"
-                    android:layout_height="29dp"
-                    android:layout_gravity="end|top"
-                    android:layout_marginEnd="5dp"
+                    android:id="@+id/editProfilePic"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_gravity="end|bottom"
+                    android:layout_marginEnd="10dp"
                     android:layout_marginBottom="5dp"
-                    android:src="@drawable/user"
-                    android:visibility="gone" />
+                    android:src="@drawable/edit_info"
+                    android:clickable="true"
+                    android:focusableInTouchMode="true"
+                    android:visibility="visible"
+                    android:focusable="true" />
 
             </FrameLayout>
 
@@ -110,6 +117,7 @@
                 android:textColor="@color/white"
                 android:textSize="12sp"
                 android:textStyle="italic"
+                android:letterSpacing=".1"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/textView" />

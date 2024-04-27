@@ -3,6 +3,7 @@ package com.ankitgupta.kchatapp
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
@@ -10,9 +11,10 @@ import androidx.databinding.DataBindingUtil
 import com.ankitgupta.kchatapp.application.HiltApplication
 import com.ankitgupta.kchatapp.databinding.ActivityHomeBinding
 import com.ankitgupta.kchatapp.viewmodel.HomeViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
 
-@HiltAndroidApp
+@AndroidEntryPoint
 class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
     private lateinit var myApplication: HiltApplication

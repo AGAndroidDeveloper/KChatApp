@@ -67,6 +67,7 @@ dependencies {
 
     // dagger hilt
     implementation("com.google.dagger:hilt-android:2.48")
+    implementation(libs.firebase.storage)
 //    implementation("com.google.android.gms:play-services-location:21.1.0")
     ksp("com.google.dagger:hilt-android-compiler:2.48")
     ksp("androidx.hilt:hilt-compiler:1.1.0")

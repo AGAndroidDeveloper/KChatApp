@@ -1,29 +1,33 @@
 package com.ankitgupta.kchatapp
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ankitgupta.kchatapp.application.HiltApplication
 import com.ankitgupta.kchatapp.authentication.MainActivity
+import com.ankitgupta.kchatapp.authentication.MainActivity.Companion.TAG
 import com.ankitgupta.kchatapp.databinding.ActivityUserProfileBinding
-import com.ankitgupta.kchatapp.sharedpref.ProfileDataManager
+import com.ankitgupta.kchatapp.response.FirebaseResultState
+import com.ankitgupta.kchatapp.utill.GlideLoadImage
 import com.ankitgupta.kchatapp.viewmodel.UserProfileViewModel
 import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuth.AuthStateListener
 import com.google.firebase.auth.FirebaseAuth.getInstance
-import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.userProfileChangeRequest
-import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
@@ -33,15 +37,26 @@ class UserProfileActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private var mAuthListener: AuthStateListener? = null
     private val viewmodel: UserProfileViewModel by viewModels()
+    private val myapplication: HiltApplication = HiltApplication.instance
+    private lateinit var glideLoadImageObj: GlideLoadImage
+
+    private val pickMedia =
+        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            if (uri != null) {
+                viewmodel.uploadProfileInFirebaseStorage(uri)
+//                binding.headerLayout.profileImage.setImageURI(uri)
+                Log.d("PhotoPicker", "Selected URI: $uri")
+            } else {
+                Log.d("PhotoPicker", "No media selected")
+            }
+        }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = DataBindingUtil.setContentView(this, R.layout.activity_user_profile)
-
         setView()
-
-
 
         lifecycleScope.launch {
             viewmodel.profileData.flowWithLifecycle(
@@ -51,6 +66,8 @@ class UserProfileActivity : AppCompatActivity() {
                 updateUserProfileData(it)
             }
         }
+
+        handleStateOfProfileUpload()
 
         mAuthListener = AuthStateListener { fbAuth ->
             val user = fbAuth.currentUser
@@ -66,8 +83,60 @@ class UserProfileActivity : AppCompatActivity() {
         clickEvent()
     }
 
+    private fun handleStateOfProfileUpload() {
+        lifecycleScope.launch(Dispatchers.Main) {
+            viewmodel.uploadProfileState.flowWithLifecycle(
+                lifecycle = lifecycle,
+                minActiveState = Lifecycle.State.STARTED
+            ).collect { state ->
+                when (state) {
+                    FirebaseResultState.Idle -> {}
+                    FirebaseResultState.Loading -> {
+                        myapplication.spinnerStart(this@UserProfileActivity)
+                    }
+
+                    is FirebaseResultState.Failure -> {
+                        myapplication.spinnerStop()
+                    }
+
+                    is FirebaseResultState.Success -> {
+                        myapplication.spinnerStop()
+                        myapplication.showToast(
+                            this@UserProfileActivity,
+                            "image upload successfully"
+                        )
+
+                        showImageInProFileImageView(state.data as Uri)
+                    }
+                }
+
+            }
+        }
+
+    }
+
+    private fun showImageInProFileImageView(uri: Uri) {
+        viewmodel.updateUser(uri, auth)
+        uri.let { it1 ->
+            glideLoadImageObj.loadImage(
+                binding.headerLayout.profileImage,
+                it1.toString()
+            )
+        }
+
+
+        Glide.with(this)
+            .load(uri)
+            .centerCrop()
+            .placeholder(R.drawable.pngtree_gray_avatar_placeholder_png_image_3416697)
+            .error(R.drawable.pngtree_gray_avatar_placeholder_png_image_3416697)
+            .into(binding.headerLayout.profileImage)
+    }
+
+
     private fun setView() {
         auth = getInstance()
+        glideLoadImageObj = GlideLoadImage(this)
 
         Glide.with(this)
             .load(R.drawable.icons8_logout)
@@ -88,16 +157,22 @@ class UserProfileActivity : AppCompatActivity() {
                 auth.signOut()
             }
 
+            headerLayout.editProfilePic.setOnClickListener {
+                pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+//                myapplication.showToast(this@UserProfileActivity, "upload new profile picture")
+            }
+
         }
     }
 
     private fun updateUserProfileData(it: ProfileData) {
-        Glide.with(this)
-            .load(it.imageURL)
-            .centerCrop()
-            .placeholder(R.drawable.download)
-            .error(R.drawable.download)
-            .into(binding.headerLayout.profileImage)
+
+        it.imageURL?.let { it1 ->
+            glideLoadImageObj.loadImage(
+                binding.headerLayout.profileImage,
+                it1
+            )
+        }
         binding.headerLayout.userName.text = it.userName
         binding.headerLayout.emailAddress.text = it.email
     }

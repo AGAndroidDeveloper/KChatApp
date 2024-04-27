@@ -17,6 +17,7 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -104,18 +105,22 @@ class HiltApplication : Application() {
     }
 
 
-    fun spinnerStart(context: Context) {
-        val pleaseWait = context.getString(R.string.please_wait)
-        dialog = ProgressDialog.show(context, "", pleaseWait, true)
-        dialog.setCancelable(false)
-        dialog.setCanceledOnTouchOutside(false)
+    fun spinnerStart(activity: Activity) {
+        val pleaseWait = activity.getString(R.string.please_wait)
+        if (!activity.isFinishing) {
+            dialog = ProgressDialog.show(activity, "", pleaseWait, true)
+            dialog.setCancelable(false)
+            dialog.setCanceledOnTouchOutside(false)
+        }
     }
+
 
     fun spinnerStop() {
         try {
             if (dialog.isShowing)
                 dialog.dismiss()
         } catch (e: Exception) {
+            Log.e("exception", e.message.toString())
 
         }
 

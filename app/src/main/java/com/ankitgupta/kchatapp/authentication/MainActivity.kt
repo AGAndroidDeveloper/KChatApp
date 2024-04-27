@@ -19,6 +19,7 @@ import com.ankitgupta.kchatapp.ProfileData
 import com.ankitgupta.kchatapp.R
 import com.ankitgupta.kchatapp.application.HiltApplication
 import com.ankitgupta.kchatapp.databinding.ActivityMainBinding
+import com.ankitgupta.kchatapp.response.FirebaseResultState
 import com.ankitgupta.kchatapp.sharedpref.ProfileDataManager
 import com.ankitgupta.kchatapp.viewmodel.AuthenticationViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -45,9 +46,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
     private val viewmodel: AuthenticationViewModel by viewModels()
-    private val realDb: FirebaseDatabase =
-        FirebaseDatabase.getInstance("https://ankit-chat-app-9cf7c-default-rtdb.asia-southeast1.firebasedatabase.app")
-
 
     private val googleSignInOptions =
         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -55,8 +53,8 @@ class MainActivity : AppCompatActivity() {
             .requestEmail()
             .build()
 
+
     companion object {
-        // TODO SERVER_CLIENT_ID must be put here
         const val SERVER_CLIENT_ID =
             "1016905926973-oo7lpaatjeftdj1uu112j9lmdqbht630.apps.googleusercontent.com"
         const val TAG = "MY_ACTIVITY_NAME"
@@ -101,6 +99,34 @@ class MainActivity : AppCompatActivity() {
                     binding.authenticate.visibility = View.VISIBLE
                 }
             }
+        }
+
+
+        lifecycleScope.launch {
+            viewmodel.observeProfileResponseState.flowWithLifecycle(
+                lifecycle = lifecycle,
+                minActiveState = Lifecycle.State.STARTED
+            ).collect { state ->
+                when (state) {
+                    is FirebaseResultState.Idle -> {}
+                    is FirebaseResultState.Loading -> {
+                        myApplication.spinnerStart(this@MainActivity)
+                    }
+
+                    is FirebaseResultState.Success -> {
+                        myApplication.spinnerStop()
+                        Log.e("successData","${state.data}")
+                        myApplication.showToast(this@MainActivity, state.data as String)
+                    }
+
+                    is FirebaseResultState.Failure -> {
+                        myApplication.spinnerStop()
+                        Log.e("successData", state.errorMessage)
+                        myApplication.showToast(this@MainActivity, state.errorMessage)
+                    }
+                }
+            }
+
         }
 
 
@@ -175,8 +201,7 @@ class MainActivity : AppCompatActivity() {
                         viewmodel.saveUserProfileDataInLocalStorage(userProfile)
                     }
                     // save user in db
-                    saveUserInDB(userProfile)
-
+                    userProfile?.let { viewmodel.saveUserInFireBase(profileData = it) }
                     myApplication.spinnerStop()
                     Log.e("user", "$userProfile")
                     updateUI(user)
@@ -189,21 +214,21 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
-    private fun saveUserInDB(userProfile: ProfileData?) {
-        val userMapData = userProfile?.profileDataToMap()
-        val reference = realDb.getReference("users")
-        if (userProfile != null) {
-            userProfile.uid?.let { it ->
-                reference.child(it).setValue(userMapData)
-                    .addOnSuccessListener {
-                        Log.e(TAG, "data added in db successfully")
-                    }
-                    .addOnFailureListener {
-                        Log.e(TAG, "exception :${it.message}")
-                    }
-            }
-        }
-    }
+//    private fun saveUserInDB(userProfile: ProfileData?) {
+//        val userMapData = userProfile?.profileDataToMap()
+//        val reference = realDb.getReference("users")
+//        if (userProfile != null) {
+//            userProfile.uid?.let { it ->
+//                reference.child(it).setValue(userMapData)
+//                    .addOnSuccessListener {
+//                        Log.e(TAG, "data added in db successfully")
+//                    }
+//                    .addOnFailureListener {
+//                        Log.e(TAG, "exception :${it.message}")
+//                    }
+//            }
+//        }
+//    }
 
     private fun updateUI(user: FirebaseUser?) {
         if (user != null) {
