@@ -42,7 +42,6 @@ android {
 }
 
 dependencies {
-
     implementation("androidx.credentials:credentials:1.2.2")
     // optional - needed for credentials support from play services, for devices running
     // Android 13 and below.

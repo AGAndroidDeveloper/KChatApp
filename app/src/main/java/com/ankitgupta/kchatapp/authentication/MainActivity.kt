@@ -115,7 +115,7 @@ class MainActivity : AppCompatActivity() {
 
                     is FirebaseResultState.Success -> {
                         myApplication.spinnerStop()
-                        Log.e("successData","${state.data}")
+                        Log.e("successData", "${state.data}")
                         myApplication.showToast(this@MainActivity, state.data as String)
                     }
 
@@ -241,6 +241,11 @@ class MainActivity : AppCompatActivity() {
             viewmodel.updateUserState(false)
             Toast.makeText(this, "no current user found", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        launcher?.unregister()
     }
 
     override fun onStart() {
