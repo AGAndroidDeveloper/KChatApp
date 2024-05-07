@@ -11,7 +11,7 @@ Welcome to the Chat App with Firebase Realtime Database! This Android app allows
 
 https://github.com/AGAndroidDeveloper
 
-# Hi, I'm ankit gupta ,! 👋
+# Hi, I'm ankit gupta ! 👋
 
 
 ## 🚀 About Me
