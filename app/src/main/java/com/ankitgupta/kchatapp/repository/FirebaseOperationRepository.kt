@@ -1,11 +1,13 @@
 package com.ankitgupta.kchatapp.repository
 
 import android.util.Log
-import com.ankitgupta.kchatapp.ProfileData
-import com.ankitgupta.kchatapp.authentication.MainActivity
+import com.ankitgupta.kchatapp.model.ProfileData
 import com.ankitgupta.kchatapp.response.MyResult
+import com.ankitgupta.kchatapp.utill.Constant.TAG
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
-import kotlinx.coroutines.tasks.await
+import com.google.firebase.database.ValueEventListener
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -14,15 +16,16 @@ class FirebaseOperationRepository(private val db: FirebaseDatabase) {
         return suspendCoroutine { continuation ->
             val userMapData = profileData.profileDataToMap()
             val reference = db.getReference("users")
+
             profileData.uid?.let { uid ->
-                reference.child(uid).setValue(userMapData)
+                reference.child(uid).setValue(profileData)
                     .addOnSuccessListener {
                         continuation.resume(MyResult.Success("Data added in DB successfully"))
-                        Log.e(MainActivity.TAG, "Data added in DB successfully")
+                        Log.e(TAG, "Data added in DB successfully")
                     }
                     .addOnFailureListener { exception ->
                         continuation.resume(MyResult.Error(Exception(exception)))
-                        Log.e(MainActivity.TAG, "Exception: ${exception.message}")
+                        Log.e(TAG, "Exception: ${exception.message}")
                     }
             } ?: continuation.resume(MyResult.Error(Exception("UID is null")))
         }

@@ -1,4 +1,4 @@
-package com.ankitgupta.kchatapp
+package com.ankitgupta.kchatapp.model
 
 data class ProfileData(
     val email: String? = null,

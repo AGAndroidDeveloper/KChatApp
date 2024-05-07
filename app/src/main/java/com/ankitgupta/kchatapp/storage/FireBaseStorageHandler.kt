@@ -10,6 +10,7 @@ class FireBaseStorageHandler(private val storage: FirebaseStorage) {
     private val TAG = "FireBaseStorageHandler"
     private val storageRef = storage.reference
     suspend fun uploadProfile(uri: Uri, userName: String?): Uri? {
+        Log.e(TAG,"IMAGEURI :$uri")
         val profileRef = if (userName != null) {
             storageRef.child("images/$userName/${UUID.randomUUID()}.jpg")
         } else {

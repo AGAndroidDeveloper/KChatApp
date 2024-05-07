@@ -13,60 +13,23 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#E3FEF7"
-        android:padding="16dp"
-        tools:context=".HomeActivity">
+        tools:context=".screen.activity.HomeActivity">
 
+        <include
+            android:id="@+id/homeTopBar"
+            layout="@layout/home_top_bar" />
 
-
-        <ImageView
-            android:id="@+id/back_navigation"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:soundEffectsEnabled="true"
-            android:src="@drawable/baseline_arrow_back_24"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:gravity="center"
-            app:layout_constraintBottom_toBottomOf="@+id/back_navigation"
-            app:layout_constraintEnd_toStartOf="@+id/menu"
-            app:layout_constraintStart_toEndOf="@+id/back_navigation"
-            app:layout_constraintTop_toTopOf="@+id/back_navigation">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="KChatApp"
-                android:textColor="@color/black"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-        </LinearLayout>
-
-        <ImageView
-            android:id="@+id/menu"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:soundEffectsEnabled="true"
-            android:src="@drawable/menu"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-        <!--        <com.google.android.material.appbar.MaterialToolbar-->
-        <!--            android:id="@+id/topbar"-->
-        <!--            android:layout_width="match_parent"-->
-        <!--            android:layout_height="wrap_content"-->
-        <!--            app:layout_constraintEnd_toEndOf="parent"-->
-        <!--            app:layout_constraintStart_toStartOf="parent"-->
-        <!--            app:layout_constraintTop_toTopOf="parent"-->
-        <!--            app:navigationIcon="@drawable/baseline_arrow_back_24" />-->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/allFriendRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="@color/black"
+            android:padding="10dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/homeTopBar"
+            tools:listitem="@layout/home_user_item" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

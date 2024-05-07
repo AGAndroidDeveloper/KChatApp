@@ -1,4 +1,4 @@
-package com.ankitgupta.kchatapp
+package com.ankitgupta.kchatapp.screen.activity
 
 import android.content.Intent
 import android.net.Uri
@@ -14,18 +14,17 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import com.ankitgupta.kchatapp.model.ProfileData
+import com.ankitgupta.kchatapp.R
 import com.ankitgupta.kchatapp.application.HiltApplication
-import com.ankitgupta.kchatapp.authentication.MainActivity
-import com.ankitgupta.kchatapp.authentication.MainActivity.Companion.TAG
+import com.ankitgupta.kchatapp.screen.activity.authentication.MainActivity
 import com.ankitgupta.kchatapp.databinding.ActivityUserProfileBinding
 import com.ankitgupta.kchatapp.response.FirebaseResultState
 import com.ankitgupta.kchatapp.utill.GlideLoadImage
 import com.ankitgupta.kchatapp.viewmodel.UserProfileViewModel
-import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuth.AuthStateListener
 import com.google.firebase.auth.FirebaseAuth.getInstance
-import com.google.firebase.auth.userProfileChangeRequest
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -39,7 +38,6 @@ class UserProfileActivity : AppCompatActivity() {
     private val viewmodel: UserProfileViewModel by viewModels()
     private val myapplication: HiltApplication = HiltApplication.instance
     private lateinit var glideLoadImageObj: GlideLoadImage
-
     private val pickMedia =
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) {
@@ -51,24 +49,18 @@ class UserProfileActivity : AppCompatActivity() {
             }
         }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = DataBindingUtil.setContentView(this, R.layout.activity_user_profile)
         setView()
-
-        lifecycleScope.launch {
-            viewmodel.profileData.flowWithLifecycle(
-                minActiveState = Lifecycle.State.STARTED,
-                lifecycle = lifecycle
-            ).collect {
-                updateUserProfileData(it)
-            }
-        }
-
+        updateUserProfileFromLocalDb()
         handleStateOfProfileUpload()
+        authStateListener()
+        clickEvent()
+    }
 
+    private fun authStateListener() {
         mAuthListener = AuthStateListener { fbAuth ->
             val user = fbAuth.currentUser
             if (user != null) {
@@ -80,7 +72,17 @@ class UserProfileActivity : AppCompatActivity() {
                 println("User not logged in")
             }
         }
-        clickEvent()
+    }
+
+    private fun updateUserProfileFromLocalDb() {
+        lifecycleScope.launch {
+            viewmodel.profileData.flowWithLifecycle(
+                minActiveState = Lifecycle.State.STARTED,
+                lifecycle = lifecycle
+            ).collect {
+                updateUserProfileData(it)
+            }
+        }
     }
 
     private fun handleStateOfProfileUpload() {
@@ -103,10 +105,12 @@ class UserProfileActivity : AppCompatActivity() {
                         myapplication.spinnerStop()
                         myapplication.showToast(
                             this@UserProfileActivity,
-                            "image upload successfully"
+                            "profile photo updated"
                         )
 
-                        showImageInProFileImageView(state.data as Uri)
+                        viewmodel.updateUser(state.data as Uri, auth)
+//                        viewmodel.getUpdatedUserFromLocalStorage()
+                       // showImageInProFileImageView(state.data as Uri)
                     }
                 }
 
@@ -116,7 +120,8 @@ class UserProfileActivity : AppCompatActivity() {
     }
 
     private fun showImageInProFileImageView(uri: Uri) {
-        viewmodel.updateUser(uri, auth)
+        // update new uri also in firebase user node
+
         uri.let { it1 ->
             glideLoadImageObj.loadImage(
                 binding.headerLayout.profileImage,
@@ -124,24 +129,18 @@ class UserProfileActivity : AppCompatActivity() {
             )
         }
 
-
-        Glide.with(this)
-            .load(uri)
-            .centerCrop()
-            .placeholder(R.drawable.pngtree_gray_avatar_placeholder_png_image_3416697)
-            .error(R.drawable.pngtree_gray_avatar_placeholder_png_image_3416697)
-            .into(binding.headerLayout.profileImage)
+//        Glide.with(this)
+//            .load(uri)
+//            .centerCrop()
+//            .placeholder(R.drawable.pngtree_gray_avatar_placeholder_png_image_3416697)
+//            .error(R.drawable.pngtree_gray_avatar_placeholder_png_image_3416697)
+//            .into(binding.headerLayout.profileImage)
     }
-
 
     private fun setView() {
         auth = getInstance()
         glideLoadImageObj = GlideLoadImage(this)
-
-        Glide.with(this)
-            .load(R.drawable.icons8_logout)
-            .centerCrop()
-            .into(binding.logoutImage)
+        glideLoadImageObj.loadLogOutGif(binding.logoutImage)
 //        userProfileChangeRequest {
 //
 //        }
@@ -162,11 +161,11 @@ class UserProfileActivity : AppCompatActivity() {
 //                myapplication.showToast(this@UserProfileActivity, "upload new profile picture")
             }
 
+
         }
     }
 
     private fun updateUserProfileData(it: ProfileData) {
-
         it.imageURL?.let { it1 ->
             glideLoadImageObj.loadImage(
                 binding.headerLayout.profileImage,

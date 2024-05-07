@@ -1,6 +1,5 @@
-package com.ankitgupta.kchatapp.authentication
+package com.ankitgupta.kchatapp.screen.activity.authentication
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -14,13 +13,14 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import com.ankitgupta.kchatapp.HomeActivity
-import com.ankitgupta.kchatapp.ProfileData
+import com.ankitgupta.kchatapp.screen.activity.HomeActivity
+import com.ankitgupta.kchatapp.model.ProfileData
 import com.ankitgupta.kchatapp.R
 import com.ankitgupta.kchatapp.application.HiltApplication
 import com.ankitgupta.kchatapp.databinding.ActivityMainBinding
 import com.ankitgupta.kchatapp.response.FirebaseResultState
-import com.ankitgupta.kchatapp.sharedpref.ProfileDataManager
+import com.ankitgupta.kchatapp.utill.Constant.SERVER_CLIENT_ID
+import com.ankitgupta.kchatapp.utill.Constant.TAG
 import com.ankitgupta.kchatapp.viewmodel.AuthenticationViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -29,12 +29,7 @@ import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 
@@ -46,19 +41,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
     private val viewmodel: AuthenticationViewModel by viewModels()
-
     private val googleSignInOptions =
         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(SERVER_CLIENT_ID)
             .requestEmail()
             .build()
 
-
-    companion object {
-        const val SERVER_CLIENT_ID =
-            "1016905926973-oo7lpaatjeftdj1uu112j9lmdqbht630.apps.googleusercontent.com"
-        const val TAG = "MY_ACTIVITY_NAME"
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,39 +55,20 @@ class MainActivity : AppCompatActivity() {
         myApplication = HiltApplication.instance
         auth = FirebaseAuth.getInstance()
         googleSignInClient = GoogleSignIn.getClient(this@MainActivity, googleSignInOptions)
+        googleSignInLauncher()
 
-        launcher =
-            registerForActivityResult(
-                ActivityResultContracts.StartActivityForResult()
-            ) {
-                if (it.resultCode == Activity.RESULT_OK) {
-                    val task = GoogleSignIn.getSignedInAccountFromIntent(it.data)
-                    try {
-                        myApplication.spinnerStart(this@MainActivity)
-                        // Google Sign In was successful, authenticate with Firebase
-                        val account = task.getResult(ApiException::class.java)!!
-                        Log.d(TAG, "firebaseAuthWithGoogle:" + account.id)
-                        firebaseAuthWithGoogle(account.idToken!!)
-                    } catch (e: ApiException) {
-                        myApplication.spinnerStop()
-                        // Google Sign In failed, update UI appropriately
-                        Log.w(TAG, "Google sign in failed", e)
-                    }
-                }
-            }
-
-        lifecycleScope.launch {
-            viewmodel.userState.flowWithLifecycle(
-                lifecycle = lifecycle,
-                minActiveState = Lifecycle.State.STARTED
-            ).collect { islogin ->
-                if (islogin) {
-                    binding.authenticate.visibility = View.GONE
-                } else {
-                    binding.authenticate.visibility = View.VISIBLE
-                }
-            }
-        }
+//        lifecycleScope.launch {
+//            viewmodel.userState.flowWithLifecycle(
+//                lifecycle = lifecycle,
+//                minActiveState = Lifecycle.State.STARTED
+//            ).collect { islogin ->
+//                if (islogin) {
+//                    binding.authenticate.visibility = View.GONE
+//                } else {
+//                    binding.authenticate.visibility = View.VISIBLE
+//                }
+//            }
+//        }
 
 
         lifecycleScope.launch {
@@ -126,11 +95,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
-
         }
-
-
-
         binding.authenticate.setOnClickListener {
             val intent = googleSignInClient.signInIntent
             launcher?.launch(intent)
@@ -141,6 +106,28 @@ class MainActivity : AppCompatActivity() {
         binding.signOut.setOnClickListener {
             signOutCurrentUser()
         }
+    }
+
+    private fun googleSignInLauncher() {
+        launcher =
+            registerForActivityResult(
+                ActivityResultContracts.StartActivityForResult()
+            ) {
+                if (it.resultCode == RESULT_OK) {
+                    val task = GoogleSignIn.getSignedInAccountFromIntent(it.data)
+                    try {
+                        myApplication.spinnerStart(this@MainActivity)
+                        // Google Sign In was successful, authenticate with Firebase
+                        val account = task.getResult(ApiException::class.java)!!
+                        Log.d(TAG, "firebaseAuthWithGoogle:" + account.id)
+                        firebaseAuthWithGoogle(account.idToken!!)
+                    } catch (e: ApiException) {
+                        myApplication.spinnerStop()
+                        // Google Sign In failed, update UI appropriately
+                        Log.w(TAG, "Google sign in failed", e)
+                    }
+                }
+            }
     }
 
     private fun signOutCurrentUser() {
@@ -200,6 +187,7 @@ class MainActivity : AppCompatActivity() {
                     if (userProfile != null) {
                         viewmodel.saveUserProfileDataInLocalStorage(userProfile)
                     }
+
                     // save user in db
                     userProfile?.let { viewmodel.saveUserInFireBase(profileData = it) }
                     myApplication.spinnerStop()
@@ -233,12 +221,12 @@ class MainActivity : AppCompatActivity() {
     private fun updateUI(user: FirebaseUser?) {
         if (user != null) {
             Toast.makeText(this, "log in successfully", Toast.LENGTH_SHORT).show()
-            viewmodel.updateUserState(true)
+          //  viewmodel.updateUserState(true)
             val intent = Intent(this, HomeActivity::class.java)
             startActivity(intent)
             finish()
         } else {
-            viewmodel.updateUserState(false)
+          //  viewmodel.updateUserState(false)
             Toast.makeText(this, "no current user found", Toast.LENGTH_SHORT).show()
         }
     }

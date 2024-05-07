@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/_114100"
-        tools:context=".authentication.MainActivity"
+        tools:context=".screen.activity.authentication.MainActivity"
         android:padding="16dp">
 
         <TextView

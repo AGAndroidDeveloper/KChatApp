@@ -2,7 +2,7 @@ package com.ankitgupta.kchatapp.sharedpref
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.ankitgupta.kchatapp.ProfileData
+import com.ankitgupta.kchatapp.model.ProfileData
 import com.ankitgupta.kchatapp.application.HiltApplication.Companion.SHARED_PREF_NAME
 import com.google.gson.Gson
 

@@ -4,10 +4,10 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ankitgupta.kchatapp.ProfileData
-import com.ankitgupta.kchatapp.authentication.MainActivity
+import com.ankitgupta.kchatapp.model.ProfileData
 import com.ankitgupta.kchatapp.model.UseCase
 import com.ankitgupta.kchatapp.response.FirebaseResultState
+import com.ankitgupta.kchatapp.utill.Constant.TAG
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.userProfileChangeRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,8 +26,7 @@ class UserProfileViewModel @Inject constructor(private val useCase: UseCase) : V
 
     private val _uploadProfileState: MutableStateFlow<FirebaseResultState> =
         MutableStateFlow(FirebaseResultState.Idle)
-
-    val uploadProfileState: StateFlow<FirebaseResultState> = _uploadProfileState
+    val uploadProfileState: StateFlow<FirebaseResultState> = _uploadProfileState.asStateFlow()
 
     init {
         try {
@@ -37,8 +36,13 @@ class UserProfileViewModel @Inject constructor(private val useCase: UseCase) : V
         }
     }
 
+    fun getUpdatedUserFromLocalStorage() {
+        _profileData.value = useCase.profileDataManager.getProfileData("PROFILE_DATA")!!
+    }
+
     private fun updateProfileDataInLocalStorage(profileData: ProfileData) {
         useCase.profileDataManager.saveProfileData(profileData, "PROFILE_DATA")
+        getUpdatedUserFromLocalStorage()
     }
 
     fun uploadProfileInFirebaseStorage(uri: Uri) {
@@ -64,12 +68,14 @@ class UserProfileViewModel @Inject constructor(private val useCase: UseCase) : V
         val user = auth.currentUser
         val profileUpdates = userProfileChangeRequest {
             photoUri = uri
+            displayName = "Ankit Gupta Android Developer"
         }
 
         user!!.updateProfile(profileUpdates)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     // save updated user detail on sharedPREF
+                    Log.d(TAG, "new profile url,:${user.photoUrl}")
                     val profileData = ProfileData(
                         email = user.email,
                         uid = user.uid,
@@ -77,13 +83,27 @@ class UserProfileViewModel @Inject constructor(private val useCase: UseCase) : V
                         userName = user.displayName,
                         phoneNumber = user.phoneNumber
                     )
+
+                    // update user also in firebase user node
+                    updateUserInFirebaseRef(profileData)
                     updateProfileDataInLocalStorage(profileData)
-                    Log.d(MainActivity.TAG, "User profile updated.")
+                    Log.d(TAG, "User profile updated in firebase as well local")
                 }
             }
             .addOnFailureListener {
-                Log.d(MainActivity.TAG, "exception ,$it")
+                Log.d(TAG, "exception ,$it")
             }
+    }
+
+    private fun updateUserInFirebaseRef(profileData: ProfileData) {
+        viewModelScope.launch(Dispatchers.IO) {
+            useCase.firebaseOperationRepository.saveUserProfileInRealTimeDb(profileData)
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+
     }
 
 

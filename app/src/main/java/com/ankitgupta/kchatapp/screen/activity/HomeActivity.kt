@@ -1,36 +1,54 @@
-package com.ankitgupta.kchatapp
+package com.ankitgupta.kchatapp.screen.activity
 
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import androidx.databinding.DataBindingUtil
+import androidx.recyclerview.widget.RecyclerView
+import com.ankitgupta.kchatapp.R
+import com.ankitgupta.kchatapp.adapter.HomeAllFriendAdapter
 import com.ankitgupta.kchatapp.application.HiltApplication
 import com.ankitgupta.kchatapp.databinding.ActivityHomeBinding
 import com.ankitgupta.kchatapp.viewmodel.HomeViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.HiltAndroidApp
 
 @AndroidEntryPoint
 class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
     private lateinit var myApplication: HiltApplication
     private val viewmodel: HomeViewModel by viewModels()
+    private lateinit var adapter: HomeAllFriendAdapter
+    private lateinit var friendRecyclerView: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //       enableEdgeToEdge()
         binding = DataBindingUtil.setContentView(this, R.layout.activity_home)
-        myApplication = HiltApplication.instance
+        setView()
+        clickEvent()
+    }
 
-        binding.backNavigation.setOnClickListener {
-            onBackPressedDispatcher.onBackPressed()
-        }
-        binding.menu.setOnClickListener {
-            showPopUpMenu(it)
+    private fun setView() {
+        myApplication = HiltApplication.instance
+        friendRecyclerView = binding.allFriendRecyclerView
+        adapter = HomeAllFriendAdapter(this@HomeActivity)
+        friendRecyclerView.adapter = adapter
+    }
+
+    private fun clickEvent() {
+        binding.apply {
+            homeTopBar.apply {
+                backNavigation.setOnClickListener {
+                    onBackPressedDispatcher.onBackPressed()
+                }
+
+                menu.setOnClickListener {
+                    showPopUpMenu(it)
+                }
+            }
         }
     }
 

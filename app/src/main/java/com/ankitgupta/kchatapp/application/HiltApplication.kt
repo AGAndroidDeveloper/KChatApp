@@ -26,7 +26,7 @@ import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
-import com.ankitgupta.kchatapp.ProfileData
+import com.ankitgupta.kchatapp.model.ProfileData
 import com.ankitgupta.kchatapp.R
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
